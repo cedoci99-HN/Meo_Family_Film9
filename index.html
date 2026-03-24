@@ -1,7 +1,122 @@
-<h1>🎬 Web Xem Phim</h1>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🎬 Web Xem Phim</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #111;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* MENU */
+        .menu {
+            text-align: center;
+            margin: 10px;
+        }
+
+        button {
+            margin: 5px;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 20px;
+            background: #333;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: red;
+        }
+
+        /* SEARCH */
+        .search-box {
+            text-align: center;
+            margin: 10px;
+        }
+
+        input {
+            padding: 10px;
+            width: 70%;
+            max-width: 400px;
+            border-radius: 20px;
+            border: none;
+        }
+
+        /* BANNER */
+        .banner {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .banner img {
+            width: 90%;
+            max-width: 400px;
+            border-radius: 15px;
+        }
+
+        /* chữ 7 màu */
+        .rainbow-text {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            animation: rainbowMove 3s linear infinite;
+        }
+
+        @keyframes rainbowMove {
+            0% { color: red; }
+            20% { color: orange; }
+            40% { color: yellow; }
+            60% { color: green; }
+            80% { color: blue; }
+            100% { color: violet; }
+        }
+
+        /* GRID */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            padding: 10px;
+        }
+
+        .movie {
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .movie:hover {
+            transform: scale(1.05);
+        }
+
+        .movie img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .movie p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🎬 Web Xem Phim của Mèo</h1>
 
 <!-- MENU -->
-<div style="text-align:center; margin:10px;">
+<div class="menu">
     <button onclick="loadCategory('phim-moi-cap-nhat')">Mới</button>
     <button onclick="loadCategory('quoc-gia/au-my')">Âu Mỹ</button>
     <button onclick="loadCategory('nam/2024')">2024</button>
@@ -14,6 +129,15 @@
     <input type="text" id="searchInput" placeholder="Tìm phim..." oninput="searchMovie()">
 </div>
 
+<!-- BANNER -->
+<div class="banner">
+    <img src="banner.jpg" alt="banner">
+    <div class="rainbow-text">
+        🎉 chúc mọi người xem phim vui vẻ 🎉
+    </div>
+</div>
+
+<!-- LIST -->
 <div id="movieList" class="grid"></div>
 
 <script>
@@ -35,14 +159,14 @@ async function loadCategory(type) {
         } else if (data?.items) {
             allMovies = data.items;
         } else {
-            throw "Không có data";
+            throw "No data";
         }
 
         renderMovies(allMovies);
 
     } catch (err) {
         document.getElementById("movieList").innerHTML =
-            "<p style='text-align:center'>❌ Lỗi load phim</p>";
+            "<p style='text-align:center'>❌ Không load được phim</p>";
     }
 }
 
@@ -53,10 +177,7 @@ function renderMovies(list) {
 
     list.forEach(m => {
 
-        const img =
-            m.poster_url ||
-            m.thumb_url ||
-            "https://via.placeholder.com/300x450";
+        const img = m.poster_url || m.thumb_url || "https://via.placeholder.com/300x450";
 
         html += `
             <div class="movie" onclick="goDetail('${m.slug}')">
@@ -90,3 +211,6 @@ function goDetail(slug) {
 loadCategory("phim-moi-cap-nhat");
 
 </script>
+
+</body>
+</html>
