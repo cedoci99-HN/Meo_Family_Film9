@@ -7,24 +7,31 @@ async function init() {
         return;
     }
 
-    const res = await fetch(`https://ophim1.com/phim/${slug}`);
+    // API nguonc
+    const res = await fetch(`https://phim.nguonc.com/api/film/${slug}`);
     const data = await res.json();
 
-    document.getElementById("title").innerText = data.movie.name;
+    const movie = data.movie;
 
-    const episodes = data.episodes[0].server_data;
+    document.getElementById("title").innerText = movie.name;
+
+    // episodes
+    const episodes = movie.episodes[0].server_data;
 
     renderEpisodes(episodes);
-    playVideo(episodes[0].link_m3u8);
+
+    // play tập đầu
+    playVideo(episodes[0].link_embed);
 }
 
 // render tập
 function renderEpisodes(list) {
+
     let html = "";
 
     list.forEach(ep => {
         html += `
-            <button onclick="playVideo('${ep.link_m3u8}')">
+            <button onclick="playVideo('${ep.link_embed}')">
                 ${ep.name}
             </button>
         `;
@@ -33,76 +40,14 @@ function renderEpisodes(list) {
     document.getElementById("episodes").innerHTML = html;
 }
 
-// play video
+// play bằng iframe (nguonc dùng embed)
 function playVideo(link) {
 
     const player = document.getElementById("player");
 
     player.innerHTML = `
-        <video id="video" autoplay playsinline webkit-playsinline></video>
-
-        <div class="controls">
-            <button onclick="togglePlay()">⏯</button>
-            <button onclick="goFullscreen()">⛶</button>
-        </div>
+        <iframe src="${link}" allowfullscreen></iframe>
     `;
-
-    const video = document.getElementById("video");
-
-    // hiện controls
-    player.onclick = () => {
-        player.classList.toggle("active");
-    };
-
-    if (Hls.isSupported()) {
-        const hls = new Hls();
-        hls.loadSource(link);
-        hls.attachMedia(video);
-    } else {
-        video.src = link;
-    }
 }
-
-// play/pause
-function togglePlay() {
-    const video = document.getElementById("video");
-    if (video.paused) video.play();
-    else video.pause();
-}
-
-// fullscreen
-function goFullscreen() {
-    const player = document.getElementById("player");
-
-    if (player.requestFullscreen) {
-        player.requestFullscreen().then(() => {
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock("landscape").catch(() => {});
-            }
-        });
-    }
-}
-
-// gợi ý xoay (không gây khó chịu)
-function handleRotateHint() {
-    const warning = document.getElementById("rotate-warning");
-
-    function check() {
-        if (window.innerHeight > window.innerWidth) {
-            warning.style.display = "block";
-
-            setTimeout(() => {
-                warning.style.display = "none";
-            }, 3000);
-        } else {
-            warning.style.display = "none";
-        }
-    }
-
-    window.addEventListener("resize", check);
-    check();
-}
-
-handleRotateHint();
 
 init();
