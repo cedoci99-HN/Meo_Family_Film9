@@ -67,10 +67,17 @@
 
         .movie {
             cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .movie:hover {
+            transform: scale(1.05);
         }
 
         .movie img {
             width: 100%;
+            height: 200px;
+            object-fit: cover;
             border-radius: 8px;
         }
 
@@ -102,6 +109,7 @@
 <script>
 
 let allMovies = [];
+const IMG_DOMAIN = "https://ophim1.com";
 
 // LOAD PHIM
 async function loadMovies() {
@@ -114,6 +122,19 @@ async function loadMovies() {
     renderMovies(allMovies);
 }
 
+// xử lý ảnh (FIX LỖI POSTER)
+function getImage(m) {
+    let url = m.thumb_url || m.poster_url || "";
+
+    if (!url) return "https://via.placeholder.com/300x450?text=No+Image";
+
+    if (!url.startsWith("http")) {
+        url = IMG_DOMAIN + url;
+    }
+
+    return url;
+}
+
 // RENDER
 function renderMovies(list) {
 
@@ -121,13 +142,11 @@ function renderMovies(list) {
 
     list.forEach(m => {
 
-        const img = m.poster_url.startsWith("http")
-            ? m.poster_url
-            : "https://ophim1.com" + m.poster_url;
+        const img = getImage(m);
 
         html += `
             <div class="movie" onclick="goDetail('${m.slug}')">
-                <img src="${img}">
+                <img src="${img}" onerror="this.src='https://via.placeholder.com/300x450?text=Error'">
                 <p>${m.name}</p>
             </div>
         `;
