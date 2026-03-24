@@ -17,26 +17,6 @@
             padding: 10px;
         }
 
-        /* MENU */
-        .menu {
-            text-align: center;
-            margin: 10px;
-        }
-
-        button {
-            margin: 5px;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 20px;
-            background: #333;
-            color: white;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background: red;
-        }
-
         /* SEARCH */
         .search-box {
             text-align: center;
@@ -46,7 +26,6 @@
         input {
             padding: 10px;
             width: 70%;
-            max-width: 400px;
             border-radius: 20px;
             border: none;
         }
@@ -58,20 +37,17 @@
         }
 
         .banner img {
-            width: 90%;
-            max-width: 400px;
+            width: 250px;
             border-radius: 15px;
         }
 
-        /* chữ 7 màu */
-        .rainbow-text {
-            margin-top: 10px;
+        .rainbow {
             font-size: 18px;
             font-weight: bold;
-            animation: rainbowMove 3s linear infinite;
+            animation: colorChange 3s infinite;
         }
 
-        @keyframes rainbowMove {
+        @keyframes colorChange {
             0% { color: red; }
             20% { color: orange; }
             40% { color: yellow; }
@@ -84,7 +60,7 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
+            gap: 10px;
             padding: 10px;
         }
 
@@ -108,21 +84,31 @@
             font-size: 14px;
             margin: 5px 0;
         }
+
+        /* PAGINATION */
+        .pagination {
+            text-align: center;
+            margin: 20px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin: 5px;
+            border: none;
+            border-radius: 10px;
+            background: #333;
+            color: white;
+        }
+
+        button:hover {
+            background: red;
+        }
     </style>
 </head>
 
 <body>
 
 <h1>🎬 Web Xem Phim của Mèo</h1>
-
-<!-- MENU -->
-<div class="menu">
-    <button onclick="loadCategory('phim-moi-cap-nhat')">Mới</button>
-    <button onclick="loadCategory('quoc-gia/au-my')">Âu Mỹ</button>
-    <button onclick="loadCategory('nam/2024')">2024</button>
-    <button onclick="loadCategory('the-loai/hanh-dong')">Hành động</button>
-    <button onclick="loadCategory('the-loai/tinh-cam')">Tình cảm</button>
-</div>
 
 <!-- SEARCH -->
 <div class="search-box">
@@ -131,53 +117,112 @@
 
 <!-- BANNER -->
 <div class="banner">
-    <img src="banner.jpg" alt="banner">
-    <div class="rainbow-text">
-        🎉 chúc mọi người xem phim vui vẻ 🎉
-    </div>
+    <img src="banner.jpg">
+    <p class="rainbow">🎉 chúc mọi người xem phim vui vẻ 🎉</p>
 </div>
 
 <!-- LIST -->
 <div id="movieList" class="grid"></div>
 
+<!-- PAGINATION -->
+<div class="pagination">
+    <button onclick="prevPage()">⬅ Prev</button>
+    <span id="pageInfo">Page 1</span>
+    <button onclick="nextPage()">Next ➡</button>
+</div>
+
 <script>
 
-let allMovies = [];
+let currentPage = 1;
+let isSearch = false;
 
-// LOAD CATEGORY
-async function loadCategory(type) {
+// LOAD PHIM (OPHIM)
+async function loadMovies(page = 1) {
 
-    document.getElementById("movieList").innerHTML =
-        "<p style='text-align:center'>Đang tải...</p>";
+    isSearch = false;
+    currentPage = page;
+
+    document.getElementById("movieList").innerHTML = "Đang tải...";
 
     try {
-        const res = await fetch(`https://phim.nguonc.com/api/films/${type}?page=1`);
+        const res = await fetch(`https://ophim1.com/v1/api/danh-sach/phim-moi-cap-nhat?page=${page}`);
         const data = await res.json();
 
-        if (data?.data?.items) {
-            allMovies = data.data.items;
-        } else if (data?.items) {
-            allMovies = data.items;
-        } else {
-            throw "No data";
-        }
+        const list = data?.data?.items || [];
 
-        renderMovies(allMovies);
+        renderMovies(list);
+        updatePage();
 
-    } catch (err) {
-        document.getElementById("movieList").innerHTML =
-            "<p style='text-align:center'>❌ Không load được phim</p>";
+    } catch {
+        document.getElementById("movieList").innerHTML = "❌ Lỗi load phim";
     }
 }
 
-// RENDER
+// SEARCH TOÀN SITE
+async function searchMovie() {
+
+    const keyword = document.getElementById("searchInput").value.trim();
+
+    if (keyword.length < 2) {
+        loadMovies(1);
+        return;
+    }
+
+    isSearch = true;
+
+    document.getElementById("movieList").innerHTML = "🔍 Đang tìm...";
+
+    try {
+        const res = await fetch(`https://ophim1.com/v1/api/tim-kiem?keyword=${keyword}`);
+        const data = await res.json();
+
+        const list = data?.data?.items || [];
+
+        renderMovies(list);
+        updatePage();
+
+    } catch {
+        document.getElementById("movieList").innerHTML = "❌ Lỗi search";
+    }
+}
+
+// PAGINATION
+function nextPage() {
+    if (!isSearch) loadMovies(currentPage + 1);
+}
+
+function prevPage() {
+    if (currentPage > 1 && !isSearch) {
+        loadMovies(currentPage - 1);
+    }
+}
+
+function updatePage() {
+    document.getElementById("pageInfo").innerText =
+        isSearch ? "Search" : "Page " + currentPage;
+}
+
+// RENDER (FIX ẢNH CHUẨN)
 function renderMovies(list) {
+
+    if (!list.length) {
+        document.getElementById("movieList").innerHTML = "Không có phim";
+        return;
+    }
 
     let html = "";
 
     list.forEach(m => {
 
-        const img = m.poster_url || m.thumb_url || "https://via.placeholder.com/300x450";
+        let img = "";
+
+        if (m.thumb_url) {
+            img = m.thumb_url.startsWith("http")
+                ? m.thumb_url
+                : "https://ophim1.com" + m.thumb_url;
+        } else {
+            img = "https://via.placeholder.com/300x450";
+        }
 
         html += `
             <div class="movie" onclick="goDetail('${m.slug}')">
@@ -190,25 +235,13 @@ function renderMovies(list) {
     document.getElementById("movieList").innerHTML = html;
 }
 
-// SEARCH
-function searchMovie() {
-
-    const keyword = document.getElementById("searchInput").value.toLowerCase();
-
-    const filtered = allMovies.filter(m =>
-        (m.name || "").toLowerCase().includes(keyword)
-    );
-
-    renderMovies(filtered);
-}
-
 // DETAIL
 function goDetail(slug) {
     window.location.href = "detail.html?slug=" + slug;
 }
 
-// load mặc định
-loadCategory("phim-moi-cap-nhat");
+// LOAD BAN ĐẦU
+loadMovies(1);
 
 </script>
 
