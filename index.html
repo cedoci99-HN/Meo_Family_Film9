@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Xem Phim</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial;
+            background: #111;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            padding: 10px;
+        }
+
+        /* SEARCH */
+        .search-box {
+            text-align: center;
+            margin: 10px;
+        }
+
+        input {
+            padding: 10px;
+            width: 70%;
+            max-width: 400px;
+            border-radius: 20px;
+            border: none;
+        }
+
+        /* BANNER */
+        .banner {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .banner img {
+            width: 250px;
+            border-radius: 15px;
+        }
+
+        /* TEXT 7 MÀU */
+        .rainbow {
+            font-size: 18px;
+            font-weight: bold;
+            animation: colorChange 3s infinite;
+        }
+
+        @keyframes colorChange {
+            0% { color: red; }
+            20% { color: orange; }
+            40% { color: yellow; }
+            60% { color: green; }
+            80% { color: blue; }
+            100% { color: violet; }
+        }
+
+        /* GRID PHIM */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .movie {
+            cursor: pointer;
+        }
+
+        .movie img {
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        .movie p {
+            font-size: 14px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+<h1>🎬 Web Xem Phim của Mèo</h1>
+
+<!-- SEARCH -->
+<div class="search-box">
+    <input type="text" id="searchInput" placeholder="Tìm phim..." oninput="searchMovie()">
+</div>
+
+<!-- BANNER -->
+<div class="banner">
+    <img src="banner.jpg">
+    <p class="rainbow">🎉 Chúc mọi người xem phim vui vẻ 🎉</p>
+</div>
+
+<!-- LIST PHIM -->
+<div class="grid" id="movieList"></div>
+
+<script>
+
+let allMovies = [];
+
+// LOAD PHIM
+async function loadMovies() {
+
+    const res = await fetch("https://ophim1.com/danh-sach/phim-moi-cap-nhat");
+    const data = await res.json();
+
+    allMovies = data.items;
+
+    renderMovies(allMovies);
+}
+
+// RENDER
+function renderMovies(list) {
+
+    let html = "";
+
+    list.forEach(m => {
+
+        const img = m.poster_url.startsWith("http")
+            ? m.poster_url
+            : "https://ophim1.com" + m.poster_url;
+
+        html += `
+            <div class="movie" onclick="goDetail('${m.slug}')">
+                <img src="${img}">
+                <p>${m.name}</p>
+            </div>
+        `;
+    });
+
+    document.getElementById("movieList").innerHTML = html;
+}
+
+// SEARCH
+function searchMovie() {
+
+    const keyword = document.getElementById("searchInput").value.toLowerCase();
+
+    const filtered = allMovies.filter(m =>
+        m.name.toLowerCase().includes(keyword)
+    );
+
+    renderMovies(filtered);
+}
+
+// CHUYỂN TRANG
+function goDetail(slug) {
+    window.location.href = "detail.html?slug=" + slug;
+}
+
+loadMovies();
+
+</script>
+
+</body>
+</html>
