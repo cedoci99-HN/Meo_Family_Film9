@@ -49,7 +49,7 @@ function playVideo(link) {
 
     const video = document.getElementById("video");
 
-    // click hiện controls
+    // hiện controls
     player.onclick = () => {
         player.classList.toggle("active");
     };
@@ -70,13 +70,12 @@ function togglePlay() {
     else video.pause();
 }
 
-// fullscreen chuẩn
+// fullscreen
 function goFullscreen() {
     const player = document.getElementById("player");
 
     if (player.requestFullscreen) {
         player.requestFullscreen().then(() => {
-            // Android xoay ngang
             if (screen.orientation && screen.orientation.lock) {
                 screen.orientation.lock("landscape").catch(() => {});
             }
@@ -84,17 +83,26 @@ function goFullscreen() {
     }
 }
 
-// xử lý xoay khi fullscreen
-document.addEventListener("fullscreenchange", () => {
-    if (document.fullscreenElement) {
-        if (screen.orientation && screen.orientation.lock) {
-            screen.orientation.lock("landscape").catch(() => {});
-        }
-    } else {
-        if (screen.orientation && screen.orientation.unlock) {
-            screen.orientation.unlock();
+// gợi ý xoay (không gây khó chịu)
+function handleRotateHint() {
+    const warning = document.getElementById("rotate-warning");
+
+    function check() {
+        if (window.innerHeight > window.innerWidth) {
+            warning.style.display = "block";
+
+            setTimeout(() => {
+                warning.style.display = "none";
+            }, 3000);
+        } else {
+            warning.style.display = "none";
         }
     }
-});
+
+    window.addEventListener("resize", check);
+    check();
+}
+
+handleRotateHint();
 
 init();
