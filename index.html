@@ -1,247 +1,177 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>🎬 Web Xem Phim</title>
+    <title>🎬 Netflix VN</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
-        body {
-            margin: 0;
-            font-family: Arial;
-            background: #111;
-            color: white;
+        body { margin:0; background:#111; color:white; font-family:Arial; }
+
+        header {
+            padding:10px;
+            text-align:center;
+            font-size:22px;
+            font-weight:bold;
+            background:black;
         }
 
-        h1 {
-            text-align: center;
-            padding: 10px;
-        }
-
-        /* SEARCH */
         .search-box {
-            text-align: center;
-            margin: 10px;
+            text-align:center;
+            margin:10px;
         }
 
         input {
-            padding: 10px;
-            width: 70%;
-            border-radius: 20px;
-            border: none;
+            padding:10px;
+            width:80%;
+            border-radius:20px;
+            border:none;
         }
 
-        /* BANNER */
         .banner {
-            text-align: center;
-            margin: 20px 0;
+            height:200px;
+            background:url('banner.jpg') center/cover;
+            display:flex;
+            align-items:end;
+            padding:20px;
         }
 
-        .banner img {
-            width: 250px;
-            border-radius: 15px;
+        .banner h2 {
+            background:rgba(0,0,0,0.6);
+            padding:10px;
         }
 
-        .rainbow {
-            font-size: 18px;
-            font-weight: bold;
-            animation: colorChange 3s infinite;
+        .row {
+            margin:10px;
         }
 
-        @keyframes colorChange {
-            0% { color: red; }
-            20% { color: orange; }
-            40% { color: yellow; }
-            60% { color: green; }
-            80% { color: blue; }
-            100% { color: violet; }
+        .row h3 {
+            margin:5px;
         }
 
-        /* GRID */
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 10px;
-            padding: 10px;
+        .list {
+            display:flex;
+            overflow-x:auto;
+            gap:10px;
         }
 
         .movie {
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .movie:hover {
-            transform: scale(1.05);
+            min-width:120px;
+            cursor:pointer;
         }
 
         .movie img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 10px;
+            width:100%;
+            border-radius:8px;
         }
 
-        .movie p {
-            font-size: 14px;
-            margin: 5px 0;
-        }
-
-        /* PAGINATION */
-        .pagination {
-            text-align: center;
-            margin: 20px;
-        }
-
-        button {
-            padding: 8px 12px;
-            margin: 5px;
-            border: none;
-            border-radius: 10px;
-            background: #333;
-            color: white;
-        }
-
-        button:hover {
-            background: red;
-        }
     </style>
 </head>
 
 <body>
 
-<h1>🎬 Web Xem Phim của Mèo</h1>
+<header>🎬 Netflix của Nam Khánh (Mèo)</header>
 
-<!-- SEARCH -->
 <div class="search-box">
-    <input type="text" id="searchInput" placeholder="Tìm phim..." oninput="searchMovie()">
+    <input id="search" placeholder="Tìm phim..." oninput="searchMovie()">
 </div>
 
-<!-- BANNER -->
 <div class="banner">
-    <img src="banner.jpg">
-    <p class="rainbow">🎉 chúc mọi người xem phim vui vẻ 🎉</p>
+    <h2>🎉 Chúc mọi người xem phim vui vẻ 🎉</h2>
 </div>
 
-<!-- LIST -->
-<div id="movieList" class="grid"></div>
-
-<!-- PAGINATION -->
-<div class="pagination">
-    <button onclick="prevPage()">⬅ Prev</button>
-    <span id="pageInfo">Page 1</span>
-    <button onclick="nextPage()">Next ➡</button>
-</div>
+<div id="content"></div>
 
 <script>
 
-let currentPage = 1;
-let isSearch = false;
+const TMDB_KEY = "503177f68c7fd46fdbf4d769a60ae5a1";
 
-// LOAD PHIM (OPHIM)
-async function loadMovies(page = 1) {
+// LOAD CATEGORY
+async function loadHome() {
 
-    isSearch = false;
-    currentPage = page;
-
-    document.getElementById("movieList").innerHTML = "Đang tải...";
-
-    try {
-        const res = await fetch(`https://ophim1.com/v1/api/danh-sach/phim-moi-cap-nhat?page=${page}`);
-        const data = await res.json();
-
-        const list = data?.data?.items || [];
-
-        renderMovies(list);
-        updatePage();
-
-    } catch {
-        document.getElementById("movieList").innerHTML = "❌ Lỗi load phim";
-    }
-}
-
-// SEARCH TOÀN SITE
-async function searchMovie() {
-
-    const keyword = document.getElementById("searchInput").value.trim();
-
-    if (keyword.length < 2) {
-        loadMovies(1);
-        return;
-    }
-
-    isSearch = true;
-
-    document.getElementById("movieList").innerHTML = "🔍 Đang tìm...";
-
-    try {
-        const res = await fetch(`https://ophim1.com/v1/api/tim-kiem?keyword=${keyword}`);
-        const data = await res.json();
-
-        const list = data?.data?.items || [];
-
-        renderMovies(list);
-        updatePage();
-
-    } catch {
-        document.getElementById("movieList").innerHTML = "❌ Lỗi search";
-    }
-}
-
-// PAGINATION
-function nextPage() {
-    if (!isSearch) loadMovies(currentPage + 1);
-}
-
-function prevPage() {
-    if (currentPage > 1 && !isSearch) {
-        loadMovies(currentPage - 1);
-    }
-}
-
-function updatePage() {
-    document.getElementById("pageInfo").innerText =
-        isSearch ? "Search" : "Page " + currentPage;
-}
-
-// RENDER (FIX ẢNH CHUẨN)
-function renderMovies(list) {
-
-    if (!list.length) {
-        document.getElementById("movieList").innerHTML = "Không có phim";
-        return;
-    }
+    const urls = [
+        {title:"🔥 Trending", url:`https://api.themoviedb.org/3/trending/movie/day?api_key=${TMDB_KEY}&language=vi-VN`},
+        {title:"🎬 Hành động", url:`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=28`},
+        {title:"❤️ Tình cảm", url:`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_KEY}&with_genres=10749`}
+    ];
 
     let html = "";
 
-    list.forEach(m => {
+    for (let u of urls) {
 
-        let img = "";
+        const res = await fetch(u.url);
+        const data = await res.json();
 
-        if (m.thumb_url) {
-            img = m.thumb_url.startsWith("http")
-                ? m.thumb_url
-                : "https://ophim1.com" + m.thumb_url;
-        } else {
-            img = "https://via.placeholder.com/300x450";
-        }
+        html += `<div class="row"><h3>${u.title}</h3><div class="list">`;
+
+        data.results.forEach(m => {
+
+            const img = m.poster_path
+                ? "https://image.tmdb.org/t/p/w300" + m.poster_path
+                : "";
+
+            html += `
+                <div class="movie" onclick="goDetail('${m.title}')">
+                    <img src="${img}">
+                </div>
+            `;
+        });
+
+        html += `</div></div>`;
+    }
+
+    document.getElementById("content").innerHTML = html;
+}
+
+// SEARCH MIX
+async function searchMovie() {
+
+    const q = document.getElementById("search").value;
+
+    if (q.length < 2) {
+        loadHome();
+        return;
+    }
+
+    const res1 = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${TMDB_KEY}&query=${q}&language=vi-VN`);
+    const res2 = await fetch(`https://ophim1.com/v1/api/tim-kiem?keyword=${q}`);
+
+    const tmdb = await res1.json();
+    const ophim = await res2.json();
+
+    let html = "<div class='row'><h3>🔍 Kết quả</h3><div class='list'>";
+
+    tmdb.results.forEach(m => {
+        const img = "https://image.tmdb.org/t/p/w300" + m.poster_path;
 
         html += `
-            <div class="movie" onclick="goDetail('${m.slug}')">
+            <div class="movie" onclick="goDetail('${m.title}')">
                 <img src="${img}">
-                <p>${m.name}</p>
             </div>
         `;
     });
 
-    document.getElementById("movieList").innerHTML = html;
+    (ophim.data.items || []).forEach(m => {
+        const img = m.thumb_url.startsWith("http")
+            ? m.thumb_url
+            : "https://ophim1.com" + m.thumb_url;
+
+        html += `
+            <div class="movie" onclick="goDetail('${m.name}')">
+                <img src="${img}">
+            </div>
+        `;
+    });
+
+    html += "</div></div>";
+
+    document.getElementById("content").innerHTML = html;
 }
 
-// DETAIL
-function goDetail(slug) {
-    window.location.href = "detail.html?slug=" + slug;
+function goDetail(name) {
+    window.location.href = "detail.html?name=" + encodeURIComponent(name);
 }
 
-// LOAD BAN ĐẦU
-loadMovies(1);
+loadHome();
 
 </script>
 

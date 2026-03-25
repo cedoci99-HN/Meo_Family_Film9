@@ -3,116 +3,58 @@
 <head>
     <title>Xem phim</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <style>
-        body {
-            margin: 0;
-            background: black;
-            color: white;
-            font-family: Arial;
-        }
-
-        h2 {
-            padding: 10px;
-        }
-
-        .player {
-            width: 100%;
-            height: 60vh;
-        }
+        body { margin:0; background:black; color:white; }
 
         video {
-            width: 100%;
-            height: 100%;
-            background: black;
-        }
-
-        @media (orientation: landscape) {
-            .player {
-                height: 100vh;
-            }
-        }
-
-        #episodes {
-            padding: 10px;
-        }
-
-        button {
-            margin: 5px;
-            padding: 8px 12px;
+            width:100%;
+            height:100vh;
+            object-fit:contain;
         }
     </style>
 </head>
 
 <body>
 
-<h2 id="title">Loading...</h2>
-
-<div class="player" id="player"></div>
-
-<div id="episodes"></div>
-
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<h3 id="title"></h3>
+<video id="video" controls autoplay></video>
 
 <script>
 
 async function init() {
 
-    const slug = new URLSearchParams(window.location.search).get("slug");
+    const name = new URLSearchParams(location.search).get("name");
+    document.getElementById("title").innerText = name;
 
-    if (!slug) return;
+    const res = await fetch(`https://ophim1.com/v1/api/tim-kiem?keyword=${name}`);
+    const data = await res.json();
 
-    try {
-        // 🔥 dùng OPhim (ổn định hơn)
-        const res = await fetch(`https://ophim1.com/phim/${slug}`);
-        const data = await res.json();
+    const slug = data.data.items[0]?.slug;
 
-        console.log("OPHIM:", data);
-
-        const movie = data.movie;
-
-        document.getElementById("title").innerText = movie.name;
-
-        const episodes = data.episodes[0].server_data;
-
-        renderEpisodes(episodes);
-
-        playVideo(episodes[0].link_m3u8);
-
-    } catch (err) {
-        document.getElementById("title").innerText = "❌ Không load được phim";
+    if (!slug) {
+        document.body.innerHTML = "❌ Không tìm thấy phim";
+        return;
     }
+
+    const res2 = await fetch(`https://ophim1.com/phim/${slug}`);
+    const detail = await res2.json();
+
+    const link = detail.episodes[0].server_data[0].link_m3u8;
+
+    play(link);
 }
 
-function renderEpisodes(list) {
-
-    let html = "";
-
-    list.forEach(ep => {
-        html += `
-            <button onclick="playVideo('${ep.link_m3u8}')">
-                ${ep.name}
-            </button>
-        `;
-    });
-
-    document.getElementById("episodes").innerHTML = html;
-}
-
-function playVideo(link) {
-
-    const player = document.getElementById("player");
-
-    player.innerHTML = `<video id="video" controls autoplay></video>`;
-
+function play(src) {
     const video = document.getElementById("video");
 
     if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(link);
+        hls.loadSource(src);
         hls.attachMedia(video);
     } else {
-        video.src = link;
+        video.src = src;
     }
 }
 
