@@ -6,55 +6,119 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
     <style>
-        body { margin:0; background:black; color:white; }
+        body { margin:0; background:black; color:white; font-family:Arial; }
+
+        h3 { padding:10px; }
 
         video {
             width:100%;
-            height:100vh;
+            height:60vh;
             object-fit:contain;
+            background:black;
+        }
+
+        .episodes {
+            padding:10px;
+        }
+
+        .episodes button {
+            margin:5px;
+            padding:8px 12px;
+            border:none;
+            border-radius:5px;
+            background:#333;
+            color:white;
+            cursor:pointer;
+        }
+
+        .episodes button.active {
+            background:red;
         }
     </style>
 </head>
 
 <body>
 
-<h3 id="title"></h3>
+<h3 id="title">Loading...</h3>
+
 <video id="video" controls autoplay></video>
 
+<div class="episodes" id="episodes"></div>
+
 <script>
+
+let currentVideo = null;
 
 async function init() {
 
     const name = new URLSearchParams(location.search).get("name");
+
     document.getElementById("title").innerText = name;
 
+    // 🔥 SEARCH OPHIM
     const res = await fetch(`https://ophim1.com/v1/api/tim-kiem?keyword=${name}`);
     const data = await res.json();
 
-    const slug = data.data.items[0]?.slug;
+    const movie = data?.data?.items?.[0];
 
-    if (!slug) {
-        document.body.innerHTML = "❌ Không tìm thấy phim";
+    if (!movie) {
+        document.body.innerHTML = "<h2>❌ Không tìm thấy phim</h2>";
         return;
     }
 
-    const res2 = await fetch(`https://ophim1.com/phim/${slug}`);
+    // 🔥 DETAIL
+    const res2 = await fetch(`https://ophim1.com/phim/${movie.slug}`);
     const detail = await res2.json();
 
-    const link = detail.episodes[0].server_data[0].link_m3u8;
+    const episodes = detail?.episodes?.[0]?.server_data || [];
 
-    play(link);
+    if (!episodes.length) {
+        document.body.innerHTML = "<h2>❌ Không có tập phim</h2>";
+        return;
+    }
+
+    renderEpisodes(episodes);
+
+    // play tập đầu
+    playVideo(episodes[0].link_m3u8, 0);
 }
 
-function play(src) {
+// RENDER DANH SÁCH TẬP
+function renderEpisodes(list) {
+
+    let html = "";
+
+    list.forEach((ep, i) => {
+        html += `
+            <button onclick="playVideo('${ep.link_m3u8}', ${i})" id="ep${i}">
+                ${ep.name}
+            </button>
+        `;
+    });
+
+    document.getElementById("episodes").innerHTML = html;
+}
+
+// PLAY VIDEO
+function playVideo(link, index) {
+
     const video = document.getElementById("video");
+
+    // highlight tập đang xem
+    document.querySelectorAll(".episodes button").forEach(b => b.classList.remove("active"));
+    document.getElementById("ep" + index).classList.add("active");
+
+    if (currentVideo) {
+        currentVideo.destroy();
+    }
 
     if (Hls.isSupported()) {
         const hls = new Hls();
-        hls.loadSource(src);
+        hls.loadSource(link);
         hls.attachMedia(video);
+        currentVideo = hls;
     } else {
-        video.src = src;
+        video.src = link;
     }
 }
 
