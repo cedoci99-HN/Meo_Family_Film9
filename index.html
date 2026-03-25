@@ -27,13 +27,38 @@
             border:none;
         }
 
-        .banner {
-            height:200px;
-            background:url('banner.jpg') center/cover;
-            display:flex;
-            align-items:end;
-            padding:20px;
-        }
+       	.banner {
+    height: 200px;
+    background: url('banner.jpg') center/cover no-repeat;
+    position: relative;
+}
+
+/* chữ trên đỉnh */
+.banner-text {
+    position: absolute;
+    top: 10px;
+    width: 100%;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    animation: rainbow 2s infinite, blink 1s infinite;
+}
+
+/* 7 màu */
+@keyframes rainbow {
+    0% { color: red; }
+    20% { color: orange; }
+    40% { color: yellow; }
+    60% { color: green; }
+    80% { color: blue; }
+    100% { color: violet; }
+}
+
+/* nhấp nháy */
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
 
         .banner h2 {
             background:rgba(0,0,0,0.6);
@@ -76,7 +101,7 @@
 </div>
 
 <div class="banner">
-    <h2>🎉 Chúc mọi người xem phim vui vẻ 🎉</h2>
+    <div class="banner-text">🎉 Chúc mọi người xem phim vui vẻ 🎉</div>
 </div>
 
 <div id="content"></div>
